@@ -1,4 +1,5 @@
 #include "Object.h"
+#include <memory.h>
 
 void Object_Init(Object* obj) {
 	memset(obj, 0, sizeof(Object));
@@ -36,7 +37,7 @@ void Object_Step(Object* obj, float deltaTime, float gravity) {
 	obj->position.y += obj->linearVelocity.y * deltaTime;
 	obj->rotation += obj->angularVelocity * deltaTime;
 
-	glms_vec2_zero(obj->force);
+	obj->force = glms_vec2_zero();
 
 }
 

@@ -14,6 +14,7 @@ void opengl_message_callback(
 }
 
 static uint32_t squareVAO, squareVBO, squareIBO;
+static uint32_t circleVAO, circleVBO, circleIBO;
 static uint32_t shader;
 
 void graphics_init()
@@ -25,28 +26,58 @@ void graphics_init()
 
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, 0, 0);
 #endif
-	squareVAO = vao_create();
-	float vertices[] =
 	{
-		-0.5f,  0.5f,
-		-0.5f, -0.5f,
-		 0.5f, -0.5f,
-		 0.5f,  0.5f,
-	};
-	squareVBO = vbo_create(vertices, sizeof(vertices));
-	VertexBufferLayout layout =
-	{
-		.elements =
+		squareVAO = vao_create();
+		float vertices[] =
 		{
-			{.type = GL_FLOAT, .count = 2 }
-		},
-	};
-	layout.count = 1;
-	vao_add_vbo_with_layout(squareVAO, squareVBO, &layout);
+			-0.5f,  0.5f,
+			-0.5f, -0.5f,
+			 0.5f, -0.5f,
+			 0.5f,  0.5f,
+		};
+		squareVBO = vbo_create(vertices, sizeof(vertices));
+		VertexBufferLayout layout =
+		{
+			.elements =
+			{
+				{.type = GL_FLOAT, .count = 2 }
+			},
+		};
+		layout.count = 1;
+		vao_add_vbo_with_layout(squareVAO, squareVBO, &layout);
 
-	uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
-	squareIBO = ibo_create(indices, 6);
-	vao_set_ibo(squareVAO, squareIBO);
+		uint32_t indices[] = { 0, 1, 2, 2, 3, 0 };
+		squareIBO = ibo_create(indices, 6);
+		vao_set_ibo(squareVAO, squareIBO);
+	}
+
+
+	{
+
+		//circle
+		circleVAO = vao_create();
+		const int resolution = 64;
+		const size_t size = sizeof(vec2s) * resolution;
+		vec2s* vertices = malloc(size);
+		for (int i = 0; i < resolution; i++) {
+			vertices[i].x = cos(glm_rad(i*360.0f/resolution));
+			vertices[i].y = sin(glm_rad(i*360.0f/resolution));
+
+		}
+
+		circleVBO = vbo_create(vertices, size);
+		VertexBufferLayout layout =
+		{
+			.elements =
+			{
+				{.type = GL_FLOAT, .count = 2 }
+			},
+		};
+		layout.count = 1;
+		vao_add_vbo_with_layout(circleVAO, circleVBO, &layout);
+	}
+
+
 
 	shader = shader_load_and_create("resources/vert.glsl", "resources/frag.glsl");
 	shader_bind(shader);
@@ -317,12 +348,52 @@ void graphics_draw_square(float x, float y, float width, float height, float zDe
 	vec3 scale3d = { width, height, 1.0f };
 	vec3 axis = { 0.0f, 0.0f, 1.0f };
 
-	glm_scale(transform, scale3d);
 	glm_translate(transform, position3d);
+	glm_scale(transform, scale3d);
 	glm_rotate(transform, glm_rad(zDeg), axis);
 
 	shader_set_float3(shader, "u_Color", color.raw);
 	shader_set_mat4(shader, "u_Transformation", transform);
-
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	vao_bind(squareVAO);
+	glDrawElements(GL_LINE_STRIP, 6, GL_UNSIGNED_INT, 0);
 }
+
+void graphics_draw_circle(float x, float y, float radius, float zDeg, vec3s color)
+{
+	mat4 transform;
+	glm_mat4_identity(transform);
+
+	vec3 position3d = { x, y, 0.0f };
+	vec3 scale3d = { radius, radius, 1.0f };
+	vec3 axis = { 0.0f, 0.0f, 1.0f };
+
+	glm_translate(transform, position3d);
+	glm_scale(transform, scale3d);
+	glm_rotate(transform, glm_rad(zDeg), axis);
+
+	shader_set_float3(shader, "u_Color", color.raw);
+	shader_set_mat4(shader, "u_Transformation", transform);
+	
+	vao_bind(circleVAO);
+	
+	glDrawArrays(GL_LINE_STRIP, 0, 2 * 360/8);
+}
+
+//uint32_t load_texture(const char* filePath)
+//{
+//	uint8_t*  image;
+//
+//	int width = 0, height = 0, channels = 0;
+//	stbi_set_flip_vertically_on_load(1);
+//	image = stbi_load(filePath, &width, &height, &channels, 0);
+//	if (!image) {
+//		printf("failed to load image file\n");
+//		__debugbreak();
+//	}
+//
+//	//glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
+//	//glTextureStorage2D(m_ID, mips, (GLenum)format, m_Width, m_Height);
+//
+//	return image;
+//	return 0;
+//}

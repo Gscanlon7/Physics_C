@@ -58,3 +58,5 @@ void shader_set_mat4(uint32_t shader, const char* name, mat4 v);
 
 void graphics_update_camera(float x, float y, float zoom, float aspectRatio);
 void graphics_draw_square(float x, float y, float width, float height, float zDeg, vec3s color);
+void graphics_draw_circle(float x, float y, float radius, float zDeg, vec3s color);
+//uint32_t load_texture(const char* filePath);
