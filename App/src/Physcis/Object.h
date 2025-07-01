@@ -4,7 +4,8 @@
 #include "collider.h"
 
 
-struct Object{
+struct Object {
+
 	vec2s position;
 	vec2s linearVelocity;
 	vec2s force;
@@ -17,11 +18,11 @@ struct Object{
 	float restitution;
 	float mass;
 	int isStatic;
-	enum Layer layer;
-
+	//enum Layer layer;
 
 	Collider collider;
 };
 void Object_Init(Object* obj);
-void Object_Calculate_Inertia(Object* object);
+void Object_Calculate_Inertia(Object* obj);
 void Object_Step(Object* obj, float deltaTime, float gravity);
+vec2s* Object_Transform_Vertices(Object* obj);

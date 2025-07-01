@@ -34,13 +34,31 @@ static vec3s random_color()
 	vec3s result = { .x = random_float(1.0f), .y = random_float(1.0f), .z = random_float(1.0f) };
 	return result;
 }
+//void draw_quadrants(Quadrant quad);
+void draw_quadrants(Quadrant quad) {
 
+	vec3s rectangleColor = { 0.2f, 1.0f, 1.0f };
+
+	AABB aabb = quad.aabb;
+	vec2s center = AABB_GetCenter(aabb);
+	vec2s dim = AABB_GetDimensions(aabb);
+	graphics_draw_square(center.x, center.y, dim.x, dim.y, 0.0f, rectangleColor);
+
+
+	if (quad.lastCell)
+		return;
+
+	for (int i = 0; i < 4; i++) {
+		draw_quadrants(quad.subQuadrants[i]);
+	}
+}
 int main()
 {	
 	srand(time(NULL));
 
-	window = window_create("Window", 1280, 720);
+	window = window_create("Window", 1870, 1050);
 	window->resizeCallback = window_resize_callback;
+	
 	//window->mouseScrollCallback = mouse_scroll_callback;
 	graphics_init();
 	float cameraZoom = 10;
@@ -58,8 +76,13 @@ int main()
 	random_colors[1] = random_color();
 	random_colors[2] = random_color();
 
+	Subdivide_Quadrant(&world, &world.rootQuadrant);
+	Subdivide_Quadrant(&world, &world.rootQuadrant.subQuadrants[0]);
+	Subdivide_Quadrant(&world, &world.rootQuadrant.subQuadrants[0].subQuadrants[1]);
+
 	while (window_is_open(window))
 	{
+		
 		float currentTime = glfwGetTime();
 		accumulator += currentTime - frameStart;
 
@@ -84,23 +107,22 @@ int main()
 
 		// Render sht
 		{
-			vec3s rectangleColor = { 0.2f, 1.0f, 1.0f };
-			vec3s circleColor = { 0.5f, 1.0f, 1.0f };
+			draw_quadrants(world.rootQuadrant);
 				
 			for (int i = 0; i < world.objectCount; i++) {
 				Object* obj = &world.objectList[i];
-				//printf("%f\n", obj.position.x);
+				
 				switch (obj->collider.shape) {
 					case Shape_Rect:
 					{
 						float width = obj->collider.vertices[1].x - obj->collider.vertices[0].x;
 						float height = obj->collider.vertices[1].y - obj->collider.vertices[2].y;
-						graphics_draw_square(obj->position.x, obj->position.y, width, height, 0.0f, random_colors[i]);
+						graphics_draw_square(obj->position.x, obj->position.y, width, height, obj->rotation, random_colors[i]);
 						break;
 					}
 					case Shape_Circle: 
 					{
-						graphics_draw_circle(obj->position.x, obj->position.y, obj->collider.radius, 0.0f, random_colors[i]);
+						graphics_draw_circle(obj->position.x, obj->position.y, obj->collider.radius, obj->rotation, random_colors[i]);
 						break;
 					}
 					case Shape_Polygon:
@@ -118,7 +140,6 @@ int main()
 		window_swap_buffers(window);
 
 	}
-
 	graphics_shutdown();
 	window_destroy(window);
 }

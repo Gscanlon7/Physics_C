@@ -43,9 +43,22 @@ void Object_Step(Object* obj, float deltaTime, float gravity) {
 
 
 
-void Object_Calculate_Inertia(Object* object) {
-	if (object->collider.shape == Shape_Rect) {
-		object->inertia = (1 / 12.0f)* object->mass* ((object->collider.vertices[1].x - object->collider.vertices[0].x) * (object->collider.vertices[1].x - object->collider.vertices[0].x)
-			+ (object->collider.vertices[1].y - object->collider.vertices[2].y) * (object->collider.vertices[1].y - object->collider.vertices[2].y));
+void Object_Calculate_Inertia(Object* obj) {
+	if (obj->collider.shape == Shape_Rect) {
+		obj->inertia = (1 / 12.0f)* obj->mass* ((obj->collider.vertices[1].x - obj->collider.vertices[0].x) * (obj->collider.vertices[1].x - obj->collider.vertices[0].x)
+			+ (obj->collider.vertices[1].y - obj->collider.vertices[2].y) * (obj->collider.vertices[1].y - obj->collider.vertices[2].y));
 	}
+}
+
+
+
+
+vec2s* Object_Transform_Vertices(Object* obj) {
+	vec2s* transformedVertices = malloc(obj->collider.vertexCount * sizeof(vec2s));
+	memccpy(transformedVertices, obj->collider.vertices, 0, obj->collider.vertexCount * sizeof(vec2s));
+	for (int i = 0; i < obj->collider.vertexCount; i++) {
+		transformedVertices[i].x += obj->position.x;
+		transformedVertices[i].y += obj->position.y;
+	}
+	return transformedVertices;
 }
